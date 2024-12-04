@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using System.Linq;
+using System.Threading.Channels;
 
 using VdrDesktop.ViewModels;
 using VdrDesktop.Views;
@@ -20,6 +21,9 @@ namespace VdrDesktop
         private IHost? _host;
         private Window? _mainWindow;
         private TrayIcon? _trayIcon;
+
+        private Channel<string> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<string>();
+        private Channel<string> _guiChannel = Channel.CreateUnbounded<string>();
 
         public override void Initialize()
         {
@@ -34,7 +38,7 @@ namespace VdrDesktop
                 _host = Host.CreateDefaultBuilder()
                             .ConfigureServices((_, services) =>
                             {
-                                services.AddHostedService<BackgroundFileSyncService>();
+                                services.AddHostedService(_ => new BackgroundFileSyncService(_backgroundFileSyncServiceChannel.Writer, _guiChannel.Reader));
                             })
                             .Build();
 
