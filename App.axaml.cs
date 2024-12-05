@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
+using VdrDesktop.Models;
 using VdrDesktop.ViewModels;
 using VdrDesktop.Views;
 
@@ -26,10 +27,15 @@ namespace VdrDesktop
 
         private System.Timers.Timer _incomingEventsTimer = new System.Timers.Timer(500);
 
-        private readonly MainWindowViewModel _mainWindowViewModel = new();
+        private readonly MainWindowViewModel _mainWindowViewModel;
 
-        private Channel<string> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<string>();
-        private Channel<string> _guiChannel = Channel.CreateUnbounded<string>();
+        private Channel<VdrEvent> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<VdrEvent>();
+        private Channel<VdrEvent> _guiChannel = Channel.CreateUnbounded<VdrEvent>();
+
+        public App()
+        {
+            _mainWindowViewModel = new MainWindowViewModel(_guiChannel.Writer);
+        }
 
         public override void Initialize()
         {
@@ -77,7 +83,7 @@ namespace VdrDesktop
                 _trayIcon.IsVisible = true;
                 _trayIcon.Clicked += (_, _) => ShowMainWindow();
 
-                _mainWindowViewModel.Events.Add(new EventItem { Text = "Application started" });
+                _mainWindowViewModel.Events.Add(new ListItem { Text = "Application started" });
 
                 _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
                 _incomingEventsTimer.AutoReset = true; // Repeat the timer event
@@ -93,7 +99,7 @@ namespace VdrDesktop
 
             await foreach (var item in _backgroundFileSyncServiceChannel.Reader.ReadAllAsync())
             {
-                _mainWindowViewModel.Events.Insert(0, new EventItem { Text = item });
+                _mainWindowViewModel?.Events.Insert(0, new ListItem { Text = $"{item.EventType}: {item.Message}" });
             }
         }
 

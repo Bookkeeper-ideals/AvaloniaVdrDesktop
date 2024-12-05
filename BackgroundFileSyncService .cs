@@ -6,9 +6,11 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
+using VdrDesktop.Models;
+
 namespace VdrDesktop
 {
-    public class BackgroundFileSyncService(ChannelWriter<string> outgoingChannel, ChannelReader<string> incommingChannel) : IHostedService
+    public class BackgroundFileSyncService(ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel) : IHostedService
     {
         private Timer? _timer;
 
@@ -33,7 +35,7 @@ namespace VdrDesktop
         {
             // Simulate background work
             Console.WriteLine($"Syncing files at {DateTime.Now}");
-            outgoingChannel.TryWrite($"Syncing files at {DateTime.Now}");
+            outgoingChannel.TryWrite(new VdrEvent(VdrEventType.FileSync, $"Syncing files at {DateTime.Now}"));
         }
 
         private async Task IncomingEventsTimer_Elapsed()

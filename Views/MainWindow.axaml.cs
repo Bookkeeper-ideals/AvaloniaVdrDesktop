@@ -15,6 +15,8 @@ namespace VdrDesktop.Views
     {
         private readonly MainWindowViewModel _viewModel = new();
 
+        public MainWindowViewModel ViewModel => _viewModel;
+
         public MainWindow()
         {
             this.InitializeComponent();
@@ -28,19 +30,20 @@ namespace VdrDesktop.Views
             this.DataContext = viewModel;
 
             viewModel.SelectFolderCommand.Set(SelectFolderAsync);
+
+            ClientSize = new Avalonia.Size(900, 450);
+            CanResize = false;
         }
 
         private async Task SelectFolderAsync()
         {
-            //await Dispatcher.UIThread.InvokeAsync(async () =>
-            //{
-                var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Select Folder" });
-                if (result.Any())
-                {
-                    Console.WriteLine($"Selected Folder: {result.First().Path.LocalPath}");
-                    //_viewModel.AddEvent($"Selected Folder: {result.First().Path.LocalPath}"); 
-                }
-            //});
+            var results = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Select Folder",
+                AllowMultiple = true
+            });
+            foreach (var result in results)
+                _viewModel.AddFolder(result.Path.LocalPath);
         }
 
         private void InitializeComponent()
