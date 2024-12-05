@@ -1,6 +1,12 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
+﻿using Avalonia.Threading;
+
+using MiniMvvm;
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel.Design;
+using System.Reactive;
+using System.Threading.Tasks;
 
 namespace VdrDesktop.ViewModels
 {
@@ -10,16 +16,17 @@ namespace VdrDesktop.ViewModels
     }
     public partial class MainWindowViewModel : ViewModelBase
     {
-        public ObservableCollection<EventItem> Events { get; }
+        public ObservableCollection<EventItem> Events { get; } = new();
+        public Command SelectFolderCommand { get; }
 
-        public string[] Tests => new string[] { "Test 1", "Test 2", "Test 3" };
 
-        public MainWindowViewModel()
+        public MainWindowViewModel() 
         {
-            Events = new ObservableCollection<EventItem>(
-                Enumerable.Range(0, 20).Select(x => new EventItem { Text = "Item " + x + " details" }));
-            //OnPropertyChanged(nameof(Events));
+            SelectFolderCommand = new Command(SelectFolderAsync);
+        }
 
+        private async Task SelectFolderAsync()
+        {
         }
     }
 }

@@ -26,24 +26,24 @@
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 
-		<!--<Label Grid.Column="0" Grid.Row="0" Content="Events:" />-->
-		<Label Grid.Column="0" Grid.Row="0" Content="{Binding Tests[1]}:" />
-		<!--<ScrollViewer Grid.Column="0" Grid.Row="1" VerticalScrollBarVisibility="Auto">-->
-			<StackPanel Grid.Column="0" Grid.Row="1">
-				<ItemsControl ItemsSource="{Binding Tests}">
+		<Label Grid.Column="0" Grid.Row="0" Content="Events:" />
+		<ScrollViewer Grid.Column="0" Grid.Row="1" VerticalScrollBarVisibility="Auto" 
+					  Classes="custom">			
+				<ItemsControl ItemsSource="{Binding Events}">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
-							<WrapPanel/>
+							<StackPanel></StackPanel>
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<TextBlock Text="{Binding}" Background="Black" />
+							<TextBlock Text="{Binding Text}" Foreground="Black" Margin="5" />
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
-			</StackPanel>
-		<!--</ScrollViewer>-->
+		</ScrollViewer>
+		<Button Grid.Column="0" Grid.Row="3" Content="Select Folder" Command="{Binding SelectFolderCommand}" />
+		
 	</Grid>
 
 </Window>

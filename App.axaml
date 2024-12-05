@@ -9,6 +9,7 @@
 	</Application.DataTemplates>
 	
 	<Application.Styles>
+		<FluentTheme />
 		<!-- Load the global styles -->
 		<StyleInclude Source="avares://VdrDesktop/AppStyles.axaml"/>
 	</Application.Styles>

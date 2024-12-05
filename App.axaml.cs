@@ -93,7 +93,7 @@ namespace VdrDesktop
 
             await foreach (var item in _backgroundFileSyncServiceChannel.Reader.ReadAllAsync())
             {
-                _mainWindowViewModel.Events.Add(new EventItem { Text = item });
+                _mainWindowViewModel.Events.Insert(0, new EventItem { Text = item });
             }
         }
 
