@@ -4,12 +4,12 @@
              xmlns:local="using:VdrDesktop"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
-    <Application.DataTemplates>
-        <local:ViewLocator/>
-    </Application.DataTemplates>
-  
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+	<Application.DataTemplates>
+		<local:ViewLocator/>
+	</Application.DataTemplates>
+	
+	<Application.Styles>
+		<!-- Load the global styles -->
+		<StyleInclude Source="avares://VdrDesktop/AppStyles.axaml"/>
+	</Application.Styles>
 </Application>

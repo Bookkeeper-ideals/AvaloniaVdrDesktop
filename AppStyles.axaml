@@ -1,0 +1,50 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <!-- Add Controls for Previewer Here -->
+    </Border>
+  </Design.PreviewWith>
+
+	<Style Selector="Window">
+		<Setter Property="Background" Value="#f0f0f0"/>
+		<!-- Light gray background -->
+		<Setter Property="Padding" Value="20"/>
+		<!-- Padding around the content -->
+		<Setter Property="Margin" Value="10"/>
+		<!-- Margin around the window -->
+		<Setter Property="BorderThickness" Value="2"/>
+		<!-- Border thickness -->
+		<Setter Property="BorderBrush" Value="#0078d7"/>
+		<!-- Border color -->
+	</Style>
+
+	<!-- Style for Buttons -->
+	<Style Selector="Button">
+		<Setter Property="Background" Value="#0078d7"/>
+		<!-- Blue background -->
+		<Setter Property="Foreground" Value="White"/>
+		<!-- White text -->
+		<Setter Property="BorderThickness" Value="1"/>
+		<Setter Property="BorderBrush" Value="#005fa3"/>
+		<!-- Darker blue border -->
+		<Setter Property="Padding" Value="10,5"/>
+		<Setter Property="FontSize" Value="14"/>
+	</Style>
+
+	<!-- Style for ScrollView -->
+	<Style Selector="ScrollViewer">
+		<Setter Property="BorderThickness" Value="1"/>
+		<!-- Border thickness -->
+		<Setter Property="BorderBrush" Value="#0078d7"/>
+		<!-- Border color -->
+		<Setter Property="Padding" Value="10"/>
+		<!-- Padding around the content -->
+	</Style>
+
+	<!-- Style for Caption -->
+	<Style Selector="TextBlock.Caption">
+		<Setter Property="HorizontalAlignment" Value="Left"/>
+		<!-- Align text to the right -->
+	</Style>
+</Styles>

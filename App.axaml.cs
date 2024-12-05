@@ -8,8 +8,10 @@ using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using System;
 using System.Linq;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 
 using VdrDesktop.ViewModels;
 using VdrDesktop.Views;
@@ -21,6 +23,10 @@ namespace VdrDesktop
         private IHost? _host;
         private Window? _mainWindow;
         private TrayIcon? _trayIcon;
+
+        private System.Timers.Timer _incomingEventsTimer = new System.Timers.Timer(500);
+
+        private readonly MainWindowViewModel _mainWindowViewModel = new();
 
         private Channel<string> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<string>();
         private Channel<string> _guiChannel = Channel.CreateUnbounded<string>();
@@ -69,16 +75,33 @@ namespace VdrDesktop
                 _trayIcon.Menu.Items.Add(exitMenuItem);
 
                 _trayIcon.IsVisible = true;
+                _trayIcon.Clicked += (_, _) => ShowMainWindow();
+
+                _mainWindowViewModel.Events.Add(new EventItem { Text = "Application started" });
+
+                _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
+                _incomingEventsTimer.AutoReset = true; // Repeat the timer event
+                _incomingEventsTimer.Enabled = true; // Start the timer
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private async Task IncomingEventsTimer_Elapsed()
+        {
+            _incomingEventsTimer.Stop();
+
+            await foreach (var item in _backgroundFileSyncServiceChannel.Reader.ReadAllAsync())
+            {
+                _mainWindowViewModel.Events.Add(new EventItem { Text = item });
+            }
         }
 
         private void ShowMainWindow()
         {
             if (_mainWindow == null)
             {
-                _mainWindow = new MainWindow();
+                _mainWindow = new MainWindow(_mainWindowViewModel);
                 _mainWindow.Closing += OnMainWindowClosing;
                 _mainWindow.Closed += (_, _) => _mainWindow = null; // Dispose the reference when closed
             }

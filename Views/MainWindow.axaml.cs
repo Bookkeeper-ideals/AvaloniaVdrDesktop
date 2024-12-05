@@ -1,4 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+using VdrDesktop.ViewModels;
 
 namespace VdrDesktop.Views
 {
@@ -6,7 +10,21 @@ namespace VdrDesktop.Views
     {
         public MainWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
+            this.DataContext = new MainWindowViewModel();
+            this.AttachDevTools();
+        }
+
+        public MainWindow(MainWindowViewModel viewModel)
+        {
+            this.InitializeComponent();
+            this.DataContext = viewModel;
+            this.AttachDevTools();
+        }
+
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
         }
     }
 }
