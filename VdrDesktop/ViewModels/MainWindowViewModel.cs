@@ -1,8 +1,9 @@
-﻿using MiniMvvm;
+﻿using ReactiveUI;
 
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -22,21 +23,20 @@ namespace VdrDesktop.ViewModels
 
         public ObservableCollection<ListItem> Folders { get; } = new();
 
-        public Command SelectFolderCommand { get; }
+        public ReactiveCommand<Unit, Unit> SelectFolderCommand { get; }
 
-        public Command<string> RemoveFolderCommand { get; }
+        public ReactiveCommand<string, Unit> RemoveFolderCommand { get; }
 
 
         public MainWindowViewModel() 
         {
-            //SelectFolderCommand = new Command(SelectFolderAsync);
-            //RemoveFolderCommand = new Command<string>(async (arg) => await RemoveFolderAsync(arg));
+            
         }
 
         public MainWindowViewModel(ChannelWriter<VdrEvent> outgoingChannel) 
         {
-            SelectFolderCommand = new Command(SelectFolderAsync);
-            RemoveFolderCommand = new Command<string>(async (arg) => await RemoveFolderAsync(arg));
+            SelectFolderCommand = ReactiveCommand.CreateFromTask(SelectFolderAsync);
+            RemoveFolderCommand = ReactiveCommand.CreateFromTask<string>(RemoveFolderAsync);
             _channel = outgoingChannel;
         }
 

@@ -6,6 +6,8 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
+using FileSyncUtility.Infrastructure;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -54,7 +56,13 @@ namespace VdrDesktop
                 _host = Host.CreateDefaultBuilder()
                             .ConfigureServices((_, services) =>
                             {
-                                services.AddHostedService(_ => new BackgroundFileSyncService(_backgroundFileSyncServiceChannel.Writer, _guiChannel.Reader));
+                                services
+                                .AddTransient<ISyncEventsTracking, FileSystemTracking>()
+                                .AddTransient<IStorageActions, UserStorage>()
+                                .AddTransient<SynchronizationProcess>()
+                                .AddSingleton<Func<SynchronizationProcess>>(provider => () => provider.GetRequiredService<SynchronizationProcess>())
+                                .AddHostedService(provider => new BackgroundFileSyncService(@"C:\Projects\Hackaton\SyncFolder", _backgroundFileSyncServiceChannel.Writer, 
+                                    _guiChannel.Reader, provider.GetRequiredService<Func<SynchronizationProcess>>()));
                             })
                             .Build();
 

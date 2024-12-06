@@ -43,6 +43,7 @@ namespace VdrDesktop
                         },
                     }
                 })
+                .UseReactiveUI()
                 .WithInterFont()
                 .LogToTrace();
     }

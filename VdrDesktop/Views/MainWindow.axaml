@@ -63,7 +63,8 @@
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<TextBlock Text="{Binding Text}" Foreground="Black" Margin="5" />
+							<TextBlock Text="{Binding Text}" Foreground="Black" Margin="5"
+									   TextWrapping="Wrap"/>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
@@ -87,11 +88,9 @@
 									<Grid.ColumnDefinitions>
 										<ColumnDefinition Width="4*" />
 										<ColumnDefinition Width="*" />
-									</Grid.ColumnDefinitions>
-								<WrapPanel Grid.Column="0" Width="350" >
-									<TextBlock  Text="{Binding Text}" Foreground="Black" Margin="5" />
-
-								</WrapPanel>
+									</Grid.ColumnDefinitions>								
+									<TextBlock Grid.Column="0" Width="350" Text="{Binding Text}" Foreground="Black" Margin="5"
+												TextWrapping="Wrap"/>
 								<Button Margin="5" Grid.Column="1" Content="Remove"
 										Command="{Binding ViewModel.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=vs:MainWindow}}"
 										CommandParameter="{Binding Text}"/>

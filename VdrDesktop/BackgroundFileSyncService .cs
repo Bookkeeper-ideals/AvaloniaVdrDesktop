@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using FileSyncUtility.Infrastructure;
+using FileSyncUtility.Model;
+
+using Microsoft.Extensions.Hosting;
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Channels;
@@ -10,9 +14,10 @@ using VdrDesktop.Models;
 
 namespace VdrDesktop
 {
-    public class BackgroundFileSyncService(ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel) : IHostedService
+    public class BackgroundFileSyncService(string globalSyncFolder, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
+        Func<SynchronizationProcess> syncProcessCreate) : IHostedService
     {
-        private Timer? _timer;
+        private readonly ConcurrentDictionary<string, SynchronizationProcess> _synchronizers = new();
 
         private System.Timers.Timer _incomingEventsTimer;
 
@@ -21,7 +26,6 @@ namespace VdrDesktop
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Console.WriteLine("Background File Sync Service Starting...");
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
             _incomingEventsTimer = new System.Timers.Timer(500);
             _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
@@ -31,27 +35,47 @@ namespace VdrDesktop
             return Task.CompletedTask;
         }
 
-        private void DoWork(object? state)
-        {
-            // Simulate background work
-            Console.WriteLine($"Syncing files at {DateTime.Now}");
-            outgoingChannel.TryWrite(new VdrEvent(VdrEventType.FileSync, $"Syncing files at {DateTime.Now}"));
-        }
-
         private async Task IncomingEventsTimer_Elapsed()
         {
             _incomingEventsTimer.Stop();
 
-            await foreach(var item in incommingChannel.ReadAllAsync())
+            await foreach (var item in incommingChannel.ReadAllAsync())
             {
-                Console.WriteLine($"Incoming event: {item}");
+                if(item.EventType == VdrEventType.FolderAddToWatch)
+                    AddSynchronizer(item.Message);
             }
         }
 
-            public Task StopAsync(CancellationToken cancellationToken)
+        public void AddSynchronizer(string folder)
         {
+            if (_synchronizers.ContainsKey(folder))
+                return;
+
+            string folderName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))!;
+            string globalSyncPath = Path.Combine(globalSyncFolder, folderName);
+
+            if (!Directory.Exists(globalSyncPath))
+                Directory.CreateDirectory(globalSyncPath);
+
+            var syncProcess = syncProcessCreate();
+
+            syncProcess.ProcessNotification += BroadcastSyncEvent;
+
+            syncProcess.Start(globalSyncPath, folder);
+            _synchronizers.TryAdd(folder, syncProcess);
+        }
+
+        public void BroadcastSyncEvent(Object? sender, SyncNotification e)
+        {
+            outgoingChannel.TryWrite(new VdrEvent(VdrEventType.FileSync, $"{e.Type}: {e.Message}"));
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            foreach(var sync in _synchronizers)
+                sync.Value.ProcessNotification -= BroadcastSyncEvent;
+
             Console.WriteLine("Background File Sync Service Stopping...");
-            _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
     }

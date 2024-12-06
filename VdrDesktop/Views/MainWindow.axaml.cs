@@ -29,7 +29,7 @@ namespace VdrDesktop.Views
             _viewModel = viewModel;
             this.DataContext = viewModel;
 
-            viewModel.SelectFolderCommand.Set(SelectFolderAsync);
+            viewModel.SelectFolderCommand.Subscribe(async _ => await SelectFolderAsync());
 
             ClientSize = new Avalonia.Size(900, 450);
             CanResize = false;
