@@ -1,6 +1,7 @@
 ﻿using FileSyncUtility.Infrastructure;
 using FileSyncUtility.Model;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using System;
@@ -14,7 +15,7 @@ using VdrDesktop.Models;
 
 namespace VdrDesktop
 {
-    public class BackgroundFileSyncService(string globalSyncFolder, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
+    public class BackgroundFileSyncService(IConfiguration configuration, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
         Func<SynchronizationProcess> syncProcessCreate) : IHostedService
     {
         private readonly ConcurrentDictionary<string, SynchronizationProcess> _synchronizers = new();
@@ -26,6 +27,9 @@ namespace VdrDesktop
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Console.WriteLine("Background File Sync Service Starting...");
+
+            if(!Directory.Exists(configuration.GetValue<string>("GlobalSyncFolder")))
+                Directory.CreateDirectory(configuration.GetValue<string>("GlobalSyncFolder"));
 
             _incomingEventsTimer = new System.Timers.Timer(500);
             _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
@@ -52,7 +56,7 @@ namespace VdrDesktop
                 return;
 
             string folderName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))!;
-            string globalSyncPath = Path.Combine(globalSyncFolder, folderName);
+            string globalSyncPath = Path.Combine(configuration.GetValue<string>("GlobalSyncFolder"), folderName);
 
             if (!Directory.Exists(globalSyncPath))
                 Directory.CreateDirectory(globalSyncPath);

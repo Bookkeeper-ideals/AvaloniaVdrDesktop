@@ -2,6 +2,8 @@
 using Avalonia.Labs.Notifications;
 using Avalonia.ReactiveUI;
 
+using Microsoft.Extensions.Configuration;
+
 using System;
 using System.Collections.Generic;
 
@@ -9,16 +11,25 @@ namespace VdrDesktop
 {
     internal sealed class Program
     {
+        public static IConfiguration Configuration { get; private set; } = null!;
+
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
         [STAThread]
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        public static void Main(string[] args)
+        {
+            Configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+            => AppBuilder.Configure<App>(() => new App(Configuration))
                 .UsePlatformDetect()
                 .WithAppNotifications(new AppNotificationOptions()
                 {
