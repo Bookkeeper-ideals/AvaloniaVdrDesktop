@@ -14,16 +14,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Remove="Assets\trayicon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Assets\trayicon.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.1" />
     <PackageReference Include="Avalonia.Desktop" Version="11.2.1" />
+    <PackageReference Include="Avalonia.Labs.Notifications" Version="11.2.0" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.1" />
@@ -40,8 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets\trayicon.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <AvaloniaResource Update="Assets\trayicon.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </AvaloniaResource>
   </ItemGroup>
 </Project>

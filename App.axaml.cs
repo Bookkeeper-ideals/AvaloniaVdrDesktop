@@ -1,15 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
+using Avalonia.Labs.Notifications;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using System;
-using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -32,6 +32,8 @@ namespace VdrDesktop
         private Channel<VdrEvent> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<VdrEvent>();
         private Channel<VdrEvent> _guiChannel = Channel.CreateUnbounded<VdrEvent>();
 
+        private Bitmap? _icon;
+
         public App()
         {
             _mainWindowViewModel = new MainWindowViewModel(_guiChannel.Writer);
@@ -44,6 +46,8 @@ namespace VdrDesktop
 
         public override void OnFrameworkInitializationCompleted()
         {
+            _icon = new Bitmap(AssetLoader.Open(new System.Uri("avares://VdrDesktop/Assets/trayicon.png")));
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Configure the host with the background service
@@ -63,7 +67,7 @@ namespace VdrDesktop
                 // Add the system tray icon
                 _trayIcon = new TrayIcon
                 {
-                    Icon = new WindowIcon("Assets/trayicon.png"), // Path to your icon
+                    Icon = new WindowIcon(_icon),
                     ToolTipText = "SystemTray Application"
                 };
 
@@ -100,6 +104,15 @@ namespace VdrDesktop
             await foreach (var item in _backgroundFileSyncServiceChannel.Reader.ReadAllAsync())
             {
                 _mainWindowViewModel?.Events.Insert(0, new ListItem { Text = $"{item.EventType}: {item.Message}" });
+
+                if (NativeNotificationManager.Current?.CreateNotification("custom") is var notification && notification is not null)
+                {
+                    notification.Message = item.Message;
+                    notification.Title = item.EventType.ToString();
+                    notification.Icon = _icon;
+                    notification.Expiration = TimeSpan.FromSeconds(5);
+                    notification.Show();
+                }
             }
         }
 
