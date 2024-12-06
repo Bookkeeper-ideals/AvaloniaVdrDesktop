@@ -96,6 +96,7 @@ namespace VdrDesktop
                 _trayIcon.Menu.Items.Add(mainWindowMenuItem);
                 _trayIcon.Menu.Items.Add(new NativeMenuItemSeparator());
                 _trayIcon.Menu.Items.Add(exitMenuItem);
+                _trayIcon.ToolTipText = "VdrDesktop";
 
                 _trayIcon.IsVisible = true;
                 _trayIcon.Clicked += (_, _) => ShowMainWindow();
