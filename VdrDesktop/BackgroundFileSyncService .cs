@@ -47,6 +47,9 @@ namespace VdrDesktop
             {
                 if(item.EventType == VdrEventType.FolderAddToWatch)
                     AddSynchronizer(item.Message);
+
+                if(item.EventType == VdrEventType.FolderRemoveFromWatch)
+                    RemoveSynchronizer(item.Message);
             }
         }
 
@@ -69,6 +72,28 @@ namespace VdrDesktop
             _synchronizers.TryAdd(folder, syncProcess);
         }
 
+        public void RemoveSynchronizer(string folder)
+        {
+            if (_synchronizers.TryRemove(folder, out var syncProcess))
+            {
+                syncProcess.ProcessNotification -= BroadcastSyncEvent;
+                syncProcess.Dispose();
+
+                try
+                {
+                    string folderName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar))!;
+                    string globalSyncPath = Path.Combine(configuration.GetValue<string>("GlobalSyncFolder"), folderName);
+
+                    if (Directory.Exists(globalSyncPath))
+                        Directory.Delete(globalSyncPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error removing folder: {ex.Message}");
+                }
+            }
+        }
+
         public void BroadcastSyncEvent(Object? sender, SyncNotification e)
         {
             outgoingChannel.TryWrite(new VdrEvent(VdrEventType.FileSync, $"{e.Type}: {e.Message}"));
@@ -76,8 +101,11 @@ namespace VdrDesktop
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            foreach(var sync in _synchronizers)
+            foreach (var sync in _synchronizers)
+            {
                 sync.Value.ProcessNotification -= BroadcastSyncEvent;
+                sync.Value.Dispose();
+            }
 
             Console.WriteLine("Background File Sync Service Stopping...");
             return Task.CompletedTask;
