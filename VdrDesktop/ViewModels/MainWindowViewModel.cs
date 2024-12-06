@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -25,7 +26,9 @@ namespace VdrDesktop.ViewModels
 
         public ReactiveCommand<Unit, Unit> SelectFolderCommand { get; }
 
-        public ReactiveCommand<string, Unit> RemoveFolderCommand { get; }
+        public ReactiveCommand<string, string> RemoveFolderCommand { get; }
+
+        public ReactiveCommand<IEnumerable<string>, IEnumerable<string>> FolderSelectedCommand { get; }
 
 
         public MainWindowViewModel() 
@@ -35,13 +38,10 @@ namespace VdrDesktop.ViewModels
 
         public MainWindowViewModel(ChannelWriter<VdrEvent> outgoingChannel) 
         {
-            SelectFolderCommand = ReactiveCommand.CreateFromTask(SelectFolderAsync);
-            RemoveFolderCommand = ReactiveCommand.CreateFromTask<string>(RemoveFolderAsync);
+            SelectFolderCommand = ReactiveCommand.CreateFromTask(async _ => { });
+            RemoveFolderCommand = ReactiveCommand.CreateFromTask<string, string>(RemoveFolderAsync);
+            FolderSelectedCommand = ReactiveCommand.CreateFromTask<IEnumerable<string>, IEnumerable<string>>(async folders => folders);
             _channel = outgoingChannel;
-        }
-
-        private async Task SelectFolderAsync()
-        {
         }
 
         public void AddFolder(string folder)
@@ -53,14 +53,16 @@ namespace VdrDesktop.ViewModels
             _channel?.TryWrite(new VdrEvent(VdrEventType.FolderAddToWatch, folder));
         }
 
-        public async Task RemoveFolderAsync(string folder)
+        public async Task<string> RemoveFolderAsync(string folder)
         {            
             var item = Folders.FirstOrDefault(x => x.Text == folder);
             if (item is null)
-                return;
+                return null;
 
             Folders.Remove(item);
             _channel?.TryWrite(new VdrEvent(VdrEventType.FolderRemoveFromWatch, folder));
+
+            return folder;
         }
     }
 }

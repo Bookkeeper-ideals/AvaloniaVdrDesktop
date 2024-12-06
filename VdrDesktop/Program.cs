@@ -52,6 +52,13 @@ namespace VdrDesktop
                                 new NativeNotificationAction("Reply", "reply")
                             }
                         },
+                        new NotificationChannel("open", "Send Notification with Open Action", NotificationPriority.High)
+                        {
+                            Actions = new List<NativeNotificationAction>
+                            {
+                                new NativeNotificationAction("Open", "open")
+                            }
+                        },
                     }
                 })
                 .UseReactiveUI()

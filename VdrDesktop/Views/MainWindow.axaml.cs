@@ -4,6 +4,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -42,8 +43,11 @@ namespace VdrDesktop.Views
                 Title = "Select Folder",
                 AllowMultiple = true
             });
+
             foreach (var result in results)
                 _viewModel.AddFolder(result.Path.LocalPath);
+
+            _viewModel.FolderSelectedCommand.Execute(results.Select(x => x.Path.LocalPath).ToArray()).Subscribe();
         }
 
         private void InitializeComponent()

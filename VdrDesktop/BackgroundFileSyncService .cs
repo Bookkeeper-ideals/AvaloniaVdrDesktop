@@ -15,7 +15,7 @@ using VdrDesktop.Models;
 
 namespace VdrDesktop
 {
-    public class BackgroundFileSyncService(IConfiguration configuration, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
+    public class BackgroundFileSyncService(IConfiguration configuration, SyncSettings syncSettings, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
         Func<SynchronizationProcess> syncProcessCreate) : IHostedService
     {
         private readonly ConcurrentDictionary<string, SynchronizationProcess> _synchronizers = new();
@@ -35,6 +35,9 @@ namespace VdrDesktop
             _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
             _incomingEventsTimer.AutoReset = true; // Repeat the timer event
             _incomingEventsTimer.Enabled = true; // Start the timer
+
+            foreach (var folder in syncSettings.Folders)
+                AddSynchronizer(folder);
 
             return Task.CompletedTask;
         }

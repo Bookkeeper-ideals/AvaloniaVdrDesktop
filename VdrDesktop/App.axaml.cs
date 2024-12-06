@@ -5,6 +5,7 @@ using Avalonia.Labs.Notifications;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 
 using FileSyncUtility.Infrastructure;
 
@@ -13,6 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -32,6 +36,9 @@ namespace VdrDesktop
 
         private System.Timers.Timer _incomingEventsTimer = new System.Timers.Timer(500);
 
+        private SyncSettings _syncSettings;
+        private JsonStorage _jsonStorage;
+
         private readonly MainWindowViewModel _mainWindowViewModel;
 
         private Channel<VdrEvent> _backgroundFileSyncServiceChannel = Channel.CreateUnbounded<VdrEvent>();
@@ -42,7 +49,28 @@ namespace VdrDesktop
         public App(IConfiguration configuration)
         {
             _configuration = configuration;
-            _mainWindowViewModel = new MainWindowViewModel(_guiChannel.Writer);
+            _jsonStorage = new JsonStorage("syncConfig.json");
+
+            _mainWindowViewModel = new MainWindowViewModel(_guiChannel.Writer);            
+            _mainWindowViewModel.FolderSelectedCommand.Subscribe(async folders => await OnFolderSelectedAsync(folders));
+            _mainWindowViewModel.RemoveFolderCommand.Subscribe(async folder => await OnRemoveFolderAsync(folder));
+        }
+
+        private async Task OnFolderSelectedAsync(IEnumerable<string> folders)
+        {
+            if (!folders.Any())
+                return;
+            
+            var foldersToStore = folders.Except(_syncSettings.Folders).ToArray().Reverse();
+
+            _syncSettings.Folders = [.. foldersToStore, .. _syncSettings.Folders];
+            await _jsonStorage.SaveConfigAsync(_syncSettings);
+        }
+
+        private async Task OnRemoveFolderAsync(string folder)
+        {
+            _syncSettings.Folders = _syncSettings.Folders.Except([folder]).ToArray();
+            await _jsonStorage.SaveConfigAsync(_syncSettings);
         }
 
         public override void Initialize()
@@ -56,6 +84,11 @@ namespace VdrDesktop
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                _syncSettings = _jsonStorage.LoadConfig() ?? new SyncSettings();
+
+                foreach (var folder in _syncSettings.Folders)
+                    _mainWindowViewModel.Folders.Add(new ListItem { Text = folder });
+
                 // Configure the host with the background service
                 _host = Host.CreateDefaultBuilder()
                             .ConfigureServices((_, services) =>
@@ -66,7 +99,7 @@ namespace VdrDesktop
                                 .AddTransient<IStorageActions, UserStorage>()
                                 .AddTransient<SynchronizationProcess>()
                                 .AddSingleton<Func<SynchronizationProcess>>(provider => () => provider.GetRequiredService<SynchronizationProcess>())
-                                .AddHostedService(provider => new BackgroundFileSyncService(_configuration, _backgroundFileSyncServiceChannel.Writer, 
+                                .AddHostedService(provider => new BackgroundFileSyncService(_configuration, _syncSettings, _backgroundFileSyncServiceChannel.Writer, 
                                     _guiChannel.Reader, provider.GetRequiredService<Func<SynchronizationProcess>>()));
                             })
                             .Build();
@@ -119,7 +152,7 @@ namespace VdrDesktop
             {
                 _mainWindowViewModel?.Events.Insert(0, new ListItem { Text = $"{item.EventType}: {item.Message}" });
 
-                if (NativeNotificationManager.Current?.CreateNotification("custom") is var notification && notification is not null)
+                if (NativeNotificationManager.Current?.CreateNotification("open") is var notification && notification is not null)
                 {
                     notification.Message = item.Message;
                     notification.Title = item.EventType.ToString();
