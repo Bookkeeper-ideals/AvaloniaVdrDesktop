@@ -3,7 +3,7 @@ using FileSyncUtility.Model.Enums;
 
 namespace FileSyncUtility.Infrastructure;
 
-public interface ISyncEventsTracking
+public interface ISyncEventsTracking : IDisposable
 {
     public event EventHandler<SyncItem>? SyncEvent;
 

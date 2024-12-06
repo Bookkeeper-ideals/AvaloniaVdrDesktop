@@ -3,8 +3,9 @@ using FileSyncUtility.Model.Enums;
 
 namespace FileSyncUtility.Infrastructure;
 
-public class SynchronizationProcess
+public class SynchronizationProcess : IDisposable
 {
+    private bool _disposed = false;
     private readonly ISyncEventsTracking _vdrSyncEvents;
     private readonly ISyncEventsTracking _storageSyncEvents;
     private readonly IStorageActions _vdrCloudStorage;
@@ -33,20 +34,27 @@ public class SynchronizationProcess
     {
         _storageSyncEvents.SkipEvent(e.EventUniqueId);
 
-        switch (e.Event)
+        try
         {
-            case FileSystemEvent.Create:
-                _userStorage.Create(e);
-                break;
-            case FileSystemEvent.Delete:
-                _userStorage.Delete(e);
-                break;
-            case FileSystemEvent.Replace:
-                _userStorage.Replace(e);
-                break;
-            case FileSystemEvent.Rename:
-                _userStorage.Rename(e);
-                break;
+            switch (e.Event)
+            {
+                case FileSystemEvent.Create:
+                    _userStorage.Create(e);
+                    break;
+                case FileSystemEvent.Delete:
+                    _userStorage.Delete(e);
+                    break;
+                case FileSystemEvent.Replace:
+                    _userStorage.Replace(e);
+                    break;
+                case FileSystemEvent.Rename:
+                    _userStorage.Rename(e);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SendNotification(e.Type, $"FileStorage: {e.Type} {e.Event} failed: {ex.Message}");
         }
 
         SendNotification(e.Type, $"FileStorage: {e.Type} {e.Event} successful");
@@ -56,20 +64,27 @@ public class SynchronizationProcess
     {
         _vdrSyncEvents.SkipEvent(e.EventUniqueId);
 
-        switch (e.Event)
+        try
         {
-            case FileSystemEvent.Create:
-                _vdrCloudStorage.Create(e);
-                break;
-            case FileSystemEvent.Delete:
-                _vdrCloudStorage.Delete(e);
-                break;
-            case FileSystemEvent.Replace:
-                _vdrCloudStorage.Replace(e);
-                break;
-            case FileSystemEvent.Rename:
-                _vdrCloudStorage.Rename(e);
-                break;
+            switch (e.Event)
+            {
+                case FileSystemEvent.Create:
+                    _vdrCloudStorage.Create(e);
+                    break;
+                case FileSystemEvent.Delete:
+                    _vdrCloudStorage.Delete(e);
+                    break;
+                case FileSystemEvent.Replace:
+                    _vdrCloudStorage.Replace(e);
+                    break;
+                case FileSystemEvent.Rename:
+                    _vdrCloudStorage.Rename(e);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            SendNotification(e.Type, $"VdrCloud: {e.Type} {e.Event} failed: {ex.Message}");
         }
     }
 
@@ -81,5 +96,27 @@ public class SynchronizationProcess
             Message = message
         };
         ProcessNotification?.Invoke(this, notification);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            _vdrSyncEvents.SyncEvent -= OnVdrEvent;
+            _storageSyncEvents.SyncEvent -= OnStorageEvent;
+
+            _vdrSyncEvents.Dispose();
+            _storageSyncEvents.Dispose();
+        }
+
+        _disposed = true;
     }
 }

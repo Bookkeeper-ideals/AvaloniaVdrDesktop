@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VdrDesktop", "VdrDesktop\VdrDesktop.csproj", "{8290AB51-6A9A-45AB-8711-CF76B101F0F2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileSyncUtility", "..\FileSyncUtility\FileSyncUtility.csproj", "{0B9415CB-A34D-4E14-A5A1-02470F6B691A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileSyncUtility", "FileSyncUtility\FileSyncUtility.csproj", "{B58B26D7-8CBF-454B-80FC-0723574639E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{8290AB51-6A9A-45AB-8711-CF76B101F0F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8290AB51-6A9A-45AB-8711-CF76B101F0F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8290AB51-6A9A-45AB-8711-CF76B101F0F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B9415CB-A34D-4E14-A5A1-02470F6B691A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B9415CB-A34D-4E14-A5A1-02470F6B691A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B9415CB-A34D-4E14-A5A1-02470F6B691A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B9415CB-A34D-4E14-A5A1-02470F6B691A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B58B26D7-8CBF-454B-80FC-0723574639E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B58B26D7-8CBF-454B-80FC-0723574639E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B58B26D7-8CBF-454B-80FC-0723574639E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B58B26D7-8CBF-454B-80FC-0723574639E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

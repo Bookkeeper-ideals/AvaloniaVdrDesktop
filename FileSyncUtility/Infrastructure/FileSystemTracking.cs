@@ -6,6 +6,7 @@ namespace FileSyncUtility.Infrastructure
 {
     public class FileSystemTracking : ISyncEventsTracking
     {
+        private bool _disposed = false;
         private FileSystemWatcher _fileWatcher = null!;
         private FileSystemWatcher _folderWatcher = null!;
 
@@ -177,6 +178,35 @@ namespace FileSyncUtility.Infrastructure
             }
 
             SyncEvent?.Invoke(this, syncItem);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                _fileWatcher.Changed -= OnChanged;
+                _fileWatcher.Created -= OnCreated;
+                _fileWatcher.Deleted -= OnDeleted;
+                _fileWatcher.Renamed -= OnRenamed;
+
+                _folderWatcher.Created -= OnFolderCreated;
+                _folderWatcher.Deleted -= OnFolderDeleted;
+                _folderWatcher.Renamed -= OnFolderRenamed;
+                _folderWatcher.Deleted -= OnFolderDeleted;
+
+                _fileWatcher.Dispose();
+                _folderWatcher.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }
