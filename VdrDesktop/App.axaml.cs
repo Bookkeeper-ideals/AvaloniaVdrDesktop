@@ -139,6 +139,9 @@ namespace VdrDesktop
                 _incomingEventsTimer.Elapsed += async (sender, e) => await IncomingEventsTimer_Elapsed();
                 _incomingEventsTimer.AutoReset = true; // Repeat the timer event
                 _incomingEventsTimer.Enabled = true; // Start the timer
+
+                if(NativeNotificationManager.Current is not null)
+                    NativeNotificationManager.Current.NotificationCompleted += NotificationOnOpen;
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -161,6 +164,12 @@ namespace VdrDesktop
                     notification.Show();
                 }
             }
+        }
+
+        private void NotificationOnOpen(object? sender, NativeNotificationCompletedEventArgs args)
+        { 
+            if(args.ActionTag == "open")
+                ShowMainWindow();
         }
 
         private void ShowMainWindow()
