@@ -2,10 +2,9 @@
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using VdrDesktop.Models;
 
-namespace VdrDesktop
+namespace VdrDesktop.Infrastructure
 {
     public class JsonStorage
     {

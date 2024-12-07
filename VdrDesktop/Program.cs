@@ -6,12 +6,17 @@ using Microsoft.Extensions.Configuration;
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+
+using VdrDesktop.Infrastructure;
 
 namespace VdrDesktop
 {
     internal sealed class Program
     {
         public static IConfiguration Configuration { get; private set; } = null!;
+        public static AuthenticationClient AuthenticationClient { get; private set; } = null!;
+        private static MockAuthenticationServer _mockServer = new MockAuthenticationServer();
 
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -19,6 +24,15 @@ namespace VdrDesktop
         [STAThread]
         public static void Main(string[] args)
         {
+            // Start the mock server
+            
+            int port = _mockServer.Start();
+            string tokenUrl = $"http://localhost:{port}/oauth/token";
+
+            // Create and configure the authentication client
+            var httpClient = new HttpClient();
+            AuthenticationClient = new AuthenticationClient(httpClient, tokenUrl);
+
             Configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -29,7 +43,7 @@ namespace VdrDesktop
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>(() => new App(Configuration))
+            => AppBuilder.Configure<App>(() => new App(Configuration, AuthenticationClient))
                 .UsePlatformDetect()
                 .WithAppNotifications(new AppNotificationOptions()
                 {

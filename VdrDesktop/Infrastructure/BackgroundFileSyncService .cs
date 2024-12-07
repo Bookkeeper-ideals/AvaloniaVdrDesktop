@@ -10,10 +10,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
 using VdrDesktop.Models;
 
-namespace VdrDesktop
+namespace VdrDesktop.Infrastructure
 {
     public class BackgroundFileSyncService(IConfiguration configuration, SyncSettings syncSettings, ChannelWriter<VdrEvent> outgoingChannel, ChannelReader<VdrEvent> incommingChannel,
         Func<SynchronizationProcess> syncProcessCreate) : IHostedService
@@ -28,7 +27,7 @@ namespace VdrDesktop
         {
             Console.WriteLine("Background File Sync Service Starting...");
 
-            if(!Directory.Exists(configuration.GetValue<string>("GlobalSyncFolder")))
+            if (!Directory.Exists(configuration.GetValue<string>("GlobalSyncFolder")))
                 Directory.CreateDirectory(configuration.GetValue<string>("GlobalSyncFolder"));
 
             _incomingEventsTimer = new System.Timers.Timer(500);
@@ -48,10 +47,10 @@ namespace VdrDesktop
 
             await foreach (var item in incommingChannel.ReadAllAsync())
             {
-                if(item.EventType == VdrEventType.FolderAddToWatch)
+                if (item.EventType == VdrEventType.FolderAddToWatch)
                     AddSynchronizer(item.Message);
 
-                if(item.EventType == VdrEventType.FolderRemoveFromWatch)
+                if (item.EventType == VdrEventType.FolderRemoveFromWatch)
                     RemoveSynchronizer(item.Message);
             }
         }
@@ -97,7 +96,7 @@ namespace VdrDesktop
             }
         }
 
-        public void BroadcastSyncEvent(Object? sender, SyncNotification e)
+        public void BroadcastSyncEvent(object? sender, SyncNotification e)
         {
             outgoingChannel.TryWrite(new VdrEvent(VdrEventType.FileSync, $"{e.Type}: {e.Message}"));
         }

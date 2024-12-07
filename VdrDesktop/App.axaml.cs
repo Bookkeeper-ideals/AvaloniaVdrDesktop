@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-
+using VdrDesktop.Infrastructure;
 using VdrDesktop.Models;
 using VdrDesktop.ViewModels;
 using VdrDesktop.Views;
@@ -30,9 +30,11 @@ namespace VdrDesktop
     {
         private IHost? _host;
         private Window? _mainWindow;
+        private Window? _loginWindow;
         private TrayIcon? _trayIcon;
 
         private readonly IConfiguration _configuration;
+        private readonly AuthenticationClient _authenticationClient;
 
         private System.Timers.Timer _incomingEventsTimer = new System.Timers.Timer(500);
 
@@ -46,9 +48,11 @@ namespace VdrDesktop
 
         private Bitmap? _icon;
 
-        public App(IConfiguration configuration)
+        public App(IConfiguration configuration, AuthenticationClient authenticationClient)
         {
             _configuration = configuration;
+            _authenticationClient = authenticationClient;
+
             _jsonStorage = new JsonStorage("syncConfig.json");
 
             _mainWindowViewModel = new MainWindowViewModel(_guiChannel.Writer);            
@@ -89,6 +93,8 @@ namespace VdrDesktop
                 foreach (var folder in _syncSettings.Folders)
                     _mainWindowViewModel.Folders.Add(new ListItem { Text = folder });
 
+
+
                 // Configure the host with the background service
                 _host = Host.CreateDefaultBuilder()
                             .ConfigureServices((_, services) =>
@@ -114,25 +120,15 @@ namespace VdrDesktop
                 _trayIcon = new TrayIcon
                 {
                     Icon = new WindowIcon(_icon),
-                    ToolTipText = "SystemTray Application"
+                    ToolTipText = "VdrDesktop"
                 };
 
-                // Add context menu to tray icon
-
-                var mainWindowMenuItem = new NativeMenuItem("Show Main Window");
-                    mainWindowMenuItem.Click += (_, _) => ShowMainWindow();
-
                 var exitMenuItem = new NativeMenuItem("Exit");
-                    exitMenuItem.Click += (_, _) => desktop.Shutdown();
+                exitMenuItem.Click += (_, _) => desktop.Shutdown();
 
-                _trayIcon.Menu = new NativeMenu();
-                _trayIcon.Menu.Items.Add(mainWindowMenuItem);
-                _trayIcon.Menu.Items.Add(new NativeMenuItemSeparator());
-                _trayIcon.Menu.Items.Add(exitMenuItem);
-                _trayIcon.ToolTipText = "VdrDesktop";
+                _trayIcon.Menu = BuildTrayIconMenu(exitMenuItem);
 
-                _trayIcon.IsVisible = true;
-                _trayIcon.Clicked += (_, _) => ShowMainWindow();
+                _trayIcon.IsVisible = true;                
 
                 _mainWindowViewModel.Events.Add(new ListItem { Text = "Application started" });
 
@@ -142,9 +138,51 @@ namespace VdrDesktop
 
                 if(NativeNotificationManager.Current is not null)
                     NativeNotificationManager.Current.NotificationCompleted += NotificationOnOpen;
+
+                desktop.Exit += async (_, _) =>
+                {
+                    await _host!.StopAsync();
+                };
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private NativeMenu BuildTrayIconMenu(NativeMenuItem exitMenuPoint)
+        {
+            var menu = new NativeMenu();
+
+            if (string.IsNullOrEmpty(_syncSettings.AuthToken))
+            {
+                var signInMenuItem = new NativeMenuItem("Sign In");
+                signInMenuItem.Click += (_, _) => ShowLoginWindow();
+                menu.Items.Add(signInMenuItem);
+                menu.Items.Add(new NativeMenuItemSeparator());
+
+                _trayIcon.Clicked -= (_, _) => ShowMainWindow();
+                _trayIcon.Clicked += (_, _) => ShowLoginWindow();
+            }
+            else
+            {
+                var mainWindowMenuItem = new NativeMenuItem("Show Main Window");
+                mainWindowMenuItem.Click += (_, _) => ShowMainWindow();
+                menu.Items.Add(mainWindowMenuItem);
+
+                menu.Items.Add(new NativeMenuItemSeparator());
+
+                var signOutMenuItem = new NativeMenuItem("Sign Out");
+                signOutMenuItem.Click += async (_, _) => await SignOutAsync();
+                menu.Items.Add(signOutMenuItem);
+
+                menu.Items.Add(new NativeMenuItemSeparator());
+
+                _trayIcon.Clicked += (_, _) => ShowMainWindow();
+                _trayIcon.Clicked -= (_, _) => ShowLoginWindow();
+            }           
+
+            menu.Items.Add(exitMenuPoint);
+
+            return menu;
         }
 
         private async Task IncomingEventsTimer_Elapsed()
@@ -183,6 +221,25 @@ namespace VdrDesktop
 
             _mainWindow.Show();
             _mainWindow.Activate(); // Bring the window to the foreground
+        }
+
+        private void ShowLoginWindow()
+        {
+            if (_loginWindow == null)
+            {
+                _loginWindow = new LoginWindow(_authenticationClient, _syncSettings, _jsonStorage);
+                _loginWindow.Closed += (_, _) => _loginWindow = null; // Dispose the reference when closed
+            }
+
+            _loginWindow.Show();
+            _loginWindow.Activate(); // Bring the window to the foreground
+        }
+
+        private async Task SignOutAsync()
+        {
+            _syncSettings.AuthToken = null;
+            _syncSettings.UserName = null;
+            await _jsonStorage.SaveConfigAsync(_syncSettings);
         }
 
         private void OnMainWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)

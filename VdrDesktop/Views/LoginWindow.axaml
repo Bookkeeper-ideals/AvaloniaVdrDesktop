@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:VdrDesktop.ViewModels"
+		xmlns:vs="using:VdrDesktop.Views"
+		mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="300"
+		CanResize="False"
+		Width="500" Height="300"
+        x:Class="VdrDesktop.LoginWindow"
+		x:DataType="vm:LoginWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="LoginWindow">
+	<Window.Styles>
+		<Style Selector="ScrollViewer.custom">
+			<Setter Property="Background" Value="LightGray"/>
+			<Setter Property="BorderBrush" Value="Black"/>
+			<Setter Property="BorderThickness" Value="2"/>
+		</Style>
+	</Window.Styles>
+	<StackPanel Margin="10 10" Spacing="40">
+		<StackPanel Orientation="Horizontal" >
+			<TextBlock Text="Login" />
+			<TextBlock IsVisible="{Binding IsError}" Text="Invalid Login or Password" Foreground="Red" Margin="10 0" />
+		</StackPanel>    
+    <TextBox Watermark="Username" TextInputOptions.ContentType="Email" TextInputOptions.ReturnKeyType="Done" Text="{Binding UserName}" />
+    <TextBox Watermark="Password" PasswordChar="*" TextInputOptions.ContentType="Password" Text="{Binding Password}" />
+    <Button Content="Login" Command="{Binding SignInCommand}" />
+  </StackPanel>
+</Window>
