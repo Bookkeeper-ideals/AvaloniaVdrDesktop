@@ -19,6 +19,8 @@ namespace VdrDesktop.ViewModels
 
     public partial class MainWindowViewModel : ViewModelBase
     {
+        private string _userName = string.Empty;
+
         private ChannelWriter<VdrEvent>? _channel;
         public ObservableCollection<ListItem> Events { get; } = new();
 
@@ -30,6 +32,11 @@ namespace VdrDesktop.ViewModels
 
         public ReactiveCommand<IEnumerable<string>, IEnumerable<string>> FolderSelectedCommand { get; }
 
+        public string UserName
+        {
+            get => _userName;
+            set => this.RaiseAndSetIfChanged(ref _userName, value);
+        }
 
         public MainWindowViewModel() 
         {

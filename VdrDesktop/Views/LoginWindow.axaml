@@ -10,14 +10,7 @@
         x:Class="VdrDesktop.LoginWindow"
 		x:DataType="vm:LoginWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="LoginWindow">
-	<Window.Styles>
-		<Style Selector="ScrollViewer.custom">
-			<Setter Property="Background" Value="LightGray"/>
-			<Setter Property="BorderBrush" Value="Black"/>
-			<Setter Property="BorderThickness" Value="2"/>
-		</Style>
-	</Window.Styles>
+        Title="LoginWindow">	
 	<StackPanel Margin="10 10" Spacing="40">
 		<StackPanel Orientation="Horizontal" >
 			<TextBlock Text="Login" />

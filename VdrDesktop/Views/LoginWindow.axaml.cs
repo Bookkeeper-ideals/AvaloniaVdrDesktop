@@ -57,6 +57,8 @@ public partial class LoginWindow : Window
         if (token != null)
         {
             _syncSettings.AuthToken = token;
+            _syncSettings.UserName = _viewModel.UserName;
+
             await _jsonStorage.SaveConfigAsync(_syncSettings);
             this.Close();
 

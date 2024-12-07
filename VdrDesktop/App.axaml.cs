@@ -93,7 +93,7 @@ namespace VdrDesktop
                 foreach (var folder in _syncSettings.Folders)
                     _mainWindowViewModel.Folders.Add(new ListItem { Text = folder });
 
-
+                _mainWindowViewModel.UserName = _syncSettings.UserName;
 
                 // Configure the host with the background service
                 _host = Host.CreateDefaultBuilder()
@@ -235,6 +235,7 @@ namespace VdrDesktop
                 _loginWindow.OnLoginSuccessCommand.Subscribe(async _ =>
                 {
                     _trayIcon.Menu = BuildTrayIconMenu();
+                    _mainWindowViewModel.UserName = _syncSettings.UserName;
                     ShowMainWindow();
                 });
             }
@@ -248,6 +249,8 @@ namespace VdrDesktop
             _syncSettings.AuthToken = null;
             _syncSettings.UserName = null;
             await _jsonStorage.SaveConfigAsync(_syncSettings);
+
+            _mainWindowViewModel.UserName = string.Empty;
 
             _trayIcon.Menu = BuildTrayIconMenu();
             _mainWindow?.Close();

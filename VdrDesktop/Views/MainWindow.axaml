@@ -4,7 +4,7 @@
 		xmlns:vs="using:VdrDesktop.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="450"
         x:Class="VdrDesktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
@@ -23,6 +23,7 @@
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<vm:MainWindowViewModel>
+			<vm:MainWindowViewModel.UserName>Design User</vm:MainWindowViewModel.UserName>
 			<vm:MainWindowViewModel.Events>
 				<vm:ListItem Text="Design Event 1" />
 				<vm:ListItem Text="Design Event 2" />
@@ -36,24 +37,17 @@
 		</vm:MainWindowViewModel>
     </Design.DataContext>
 
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="2*" />
-			<ColumnDefinition Width="0.1*" />
-			<ColumnDefinition Width="3*" />
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<!--<RowDefinition Height="0.1*" />-->
-			<RowDefinition Height="*" />
-		</Grid.RowDefinitions>
-
-		<StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical"
-					VerticalAlignment="Stretch">
-			
+	<StackPanel Orientation="Vertical">
+		<Label Content="{Binding UserName, StringFormat=User: {0}}" FontSize="16" FontWeight="Bold" />
+	
+	
+	<StackPanel Margin="5 5" Spacing="10" Orientation="Horizontal">		
+		<StackPanel Orientation="Vertical" Width="310"
+					VerticalAlignment="Stretch">		
 		
 		<Label Content="Events:" />
 		<ScrollViewer VerticalScrollBarVisibility="Auto"
-					  Height="380"
+					  Height="360"
 					  Classes="custom">			
 				<ItemsControl ItemsSource="{Binding Events}">
 					<ItemsControl.ItemsPanel>
@@ -70,9 +64,12 @@
 				</ItemsControl>
 		</ScrollViewer>
 		</StackPanel>
-		<GridSplitter Grid.Column="1" Width="2" HorizontalAlignment="Stretch" Background="Gray"/>
-		<StackPanel Grid.Column="2" Grid.Row="2" Orientation="Vertical">
-			<Label Content="Syncronyzing folders:" />
+		<GridSplitter HorizontalAlignment="Stretch" Background="Gray"/>
+		<StackPanel Orientation="Vertical" Width="510">
+			<StackPanel Orientation="Horizontal" Width="510" >
+			<Label Content="Syncronyzing folders:" VerticalAlignment="Center" />
+			<Button Margin="0 5" Content="Add Folder" Command="{Binding SelectFolderCommand}" />
+			</StackPanel>
 			<ScrollViewer VerticalScrollBarVisibility="Auto"
 					  Height="340"
 					  Classes="custom">
@@ -84,23 +81,20 @@
 					</ItemsControl.ItemsPanel>
 					<ItemsControl.ItemTemplate>
 						<DataTemplate>
-							<Grid>								
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="4*" />
-										<ColumnDefinition Width="*" />
-									</Grid.ColumnDefinitions>								
-									<TextBlock Grid.Column="0" Width="350" Text="{Binding Text}" Foreground="Black" Margin="5"
+							<StackPanel Orientation="Horizontal">				
+									<TextBlock Width="350" Text="{Binding Text}" Foreground="Black" Margin="5"
 												TextWrapping="Wrap"/>
-								<Button Margin="5" Grid.Column="1" Content="Remove"
+								<Button Margin="2 2" Content="Remove"
 										Command="{Binding ViewModel.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=vs:MainWindow}}"
 										CommandParameter="{Binding Text}"/>
-							</Grid>							
+							</StackPanel>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
-			</ScrollViewer>
-			<Button Margin="10"  Content="Add Folder" Command="{Binding SelectFolderCommand}" />
-		</StackPanel>			
-	</Grid>
+			</ScrollViewer>			
+		</StackPanel>
 
+	</StackPanel>
+
+	</StackPanel>
 </Window>
