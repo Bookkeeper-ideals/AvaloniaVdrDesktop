@@ -30,7 +30,7 @@ namespace VdrDesktop
     {
         private IHost? _host;
         private Window? _mainWindow;
-        private Window? _loginWindow;
+        private LoginWindow? _loginWindow;
         private TrayIcon? _trayIcon;
 
         private readonly IConfiguration _configuration;
@@ -123,10 +123,7 @@ namespace VdrDesktop
                     ToolTipText = "VdrDesktop"
                 };
 
-                var exitMenuItem = new NativeMenuItem("Exit");
-                exitMenuItem.Click += (_, _) => desktop.Shutdown();
-
-                _trayIcon.Menu = BuildTrayIconMenu(exitMenuItem);
+                _trayIcon.Menu = BuildTrayIconMenu();
 
                 _trayIcon.IsVisible = true;                
 
@@ -148,9 +145,14 @@ namespace VdrDesktop
             base.OnFrameworkInitializationCompleted();
         }
 
-        private NativeMenu BuildTrayIconMenu(NativeMenuItem exitMenuPoint)
+        private NativeMenu BuildTrayIconMenu()
         {
             var menu = new NativeMenu();
+
+            var desktop = ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+
+            var exitMenuItem = new NativeMenuItem("Exit");
+            exitMenuItem.Click += (_, _) => desktop.Shutdown();
 
             if (string.IsNullOrEmpty(_syncSettings.AuthToken))
             {
@@ -180,7 +182,7 @@ namespace VdrDesktop
                 _trayIcon.Clicked -= (_, _) => ShowLoginWindow();
             }           
 
-            menu.Items.Add(exitMenuPoint);
+            menu.Items.Add(exitMenuItem);
 
             return menu;
         }
@@ -229,6 +231,12 @@ namespace VdrDesktop
             {
                 _loginWindow = new LoginWindow(_authenticationClient, _syncSettings, _jsonStorage);
                 _loginWindow.Closed += (_, _) => _loginWindow = null; // Dispose the reference when closed
+
+                _loginWindow.OnLoginSuccessCommand.Subscribe(async _ =>
+                {
+                    _trayIcon.Menu = BuildTrayIconMenu();
+                    ShowMainWindow();
+                });
             }
 
             _loginWindow.Show();
@@ -240,6 +248,10 @@ namespace VdrDesktop
             _syncSettings.AuthToken = null;
             _syncSettings.UserName = null;
             await _jsonStorage.SaveConfigAsync(_syncSettings);
+
+            _trayIcon.Menu = BuildTrayIconMenu();
+            _mainWindow?.Close();
+            ShowLoginWindow();
         }
 
         private void OnMainWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
