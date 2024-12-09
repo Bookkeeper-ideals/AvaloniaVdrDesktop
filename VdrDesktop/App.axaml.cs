@@ -84,7 +84,7 @@ namespace VdrDesktop
 
         public override void OnFrameworkInitializationCompleted()
         {
-            _icon = new Bitmap(AssetLoader.Open(new System.Uri("avares://VdrDesktop/Assets/trayicon.png")));
+            _icon = new Bitmap(AssetLoader.Open(new System.Uri("avares://VdrDesktop/Assets/vdr.ico")));
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
