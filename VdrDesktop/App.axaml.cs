@@ -124,7 +124,7 @@ namespace VdrDesktop
                 };
 
                 _trayIcon.Menu = BuildTrayIconMenu();
-
+                _trayIcon.Clicked += (_, _) => ShowActualWindow();
                 _trayIcon.IsVisible = true;                
 
                 _mainWindowViewModel.Events.Add(new ListItem { Text = "Application started" });
@@ -160,9 +160,6 @@ namespace VdrDesktop
                 signInMenuItem.Click += (_, _) => ShowLoginWindow();
                 menu.Items.Add(signInMenuItem);
                 menu.Items.Add(new NativeMenuItemSeparator());
-
-                _trayIcon.Clicked -= (_, _) => ShowMainWindow();
-                _trayIcon.Clicked += (_, _) => ShowLoginWindow();
             }
             else
             {
@@ -177,14 +174,19 @@ namespace VdrDesktop
                 menu.Items.Add(signOutMenuItem);
 
                 menu.Items.Add(new NativeMenuItemSeparator());
-
-                _trayIcon.Clicked += (_, _) => ShowMainWindow();
-                _trayIcon.Clicked -= (_, _) => ShowLoginWindow();
             }           
 
             menu.Items.Add(exitMenuItem);
 
             return menu;
+        }
+
+        public void ShowActualWindow()
+        { 
+            if(string.IsNullOrEmpty(_syncSettings.UserName))
+                ShowLoginWindow();
+            else
+                ShowMainWindow();
         }
 
         private async Task IncomingEventsTimer_Elapsed()
