@@ -1,5 +1,7 @@
 ﻿using FileSyncUtility.Model.Enums;
 
+using System.IO;
+
 namespace FileSyncUtility.Model;
 
 public class SyncItem
@@ -8,15 +10,24 @@ public class SyncItem
     public FileSystemEvent Event { get; set; }
     public string FullPath { get; set; }
     public string? Name { get; set; }
+    public string? NewName { get; set; }
     public string? RelativePath { get; set; }
-    public string EventUniqueId => $"{Event}{FullPath}";
+    public string EventUniqueId => $"{Event}{RelativePath}";
 
-    public Stream? GetDataStream()
+    public string? GetData()
     {
         if (Type == ItemType.File &&
             (Event == FileSystemEvent.Create || Event == FileSystemEvent.Replace))
         {
-            throw new NotImplementedException();
+            try
+            {
+                return File.ReadAllText(FullPath);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle exceptions as needed
+                return null;
+            }
         }
 
         return null;

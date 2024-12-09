@@ -8,8 +8,8 @@ public class SynchronizationProcess : IDisposable
     private bool _disposed = false;
     private readonly ISyncEventsTracking _vdrSyncEvents;
     private readonly ISyncEventsTracking _storageSyncEvents;
-    private readonly IStorageActions _vdrCloudStorage;
-    private readonly IStorageActions _userStorage;
+    private IStorageActions _vdrCloudStorage;
+    private IStorageActions _userStorage;
 
     public event EventHandler<SyncNotification>? ProcessNotification;
 
@@ -17,12 +17,13 @@ public class SynchronizationProcess : IDisposable
     {
         _vdrSyncEvents = new FileSystemTracking();
         _storageSyncEvents = new FileSystemTracking();
-        _vdrCloudStorage = new UserStorage();
-        _userStorage = new UserStorage();
     }
 
     public void Start(string masterFolderPath, string syncFolderPath)
     {
+        _vdrCloudStorage = new UserStorage(masterFolderPath);
+        _userStorage = new UserStorage(syncFolderPath);
+
         _vdrSyncEvents.SyncEvent += OnVdrEvent;
         _storageSyncEvents.SyncEvent += OnStorageEvent;
 
@@ -32,7 +33,28 @@ public class SynchronizationProcess : IDisposable
 
     protected virtual void OnVdrEvent(object? sender, SyncItem e)
     {
-        _storageSyncEvents.SkipEvent(e.EventUniqueId);
+        if (e.Event == FileSystemEvent.Rename)
+        {
+            var deleteEvent = new SyncItem
+            {
+                Event = FileSystemEvent.Delete,
+                RelativePath = e.NewName
+            };
+            _storageSyncEvents.SkipEvent(deleteEvent.EventUniqueId);
+            var createEvent = new SyncItem
+            {
+                Event = FileSystemEvent.Create,
+                RelativePath = e.NewName
+            };
+            _storageSyncEvents.SkipEvent(createEvent.EventUniqueId);
+        }
+        else
+        {
+            _storageSyncEvents.SkipEvent(e.EventUniqueId);
+        }
+        
+        if (e.Event == FileSystemEvent.Replace)
+            _storageSyncEvents.SkipEvent(e.EventUniqueId);
 
         try
         {
@@ -62,7 +84,28 @@ public class SynchronizationProcess : IDisposable
 
     protected virtual void OnStorageEvent(object? sender, SyncItem e)
     {
-        _vdrSyncEvents.SkipEvent(e.EventUniqueId);
+        if (e.Event == FileSystemEvent.Rename)
+        {
+            var deleteEvent = new SyncItem
+            {
+                Event = FileSystemEvent.Delete,
+                RelativePath = e.NewName
+            };
+            _vdrSyncEvents.SkipEvent(deleteEvent.EventUniqueId);
+            var createEvent = new SyncItem
+            {
+                Event = FileSystemEvent.Create,
+                RelativePath = e.NewName
+            };
+            _vdrSyncEvents.SkipEvent(createEvent.EventUniqueId);
+        }
+        else
+        {
+            _vdrSyncEvents.SkipEvent(e.EventUniqueId);
+        }
+        
+        if (e.Event == FileSystemEvent.Replace)
+            _vdrSyncEvents.SkipEvent(e.EventUniqueId);
 
         try
         {

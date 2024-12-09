@@ -10,7 +10,7 @@ namespace FileSyncUtility.Infrastructure
         private FileSystemWatcher _fileWatcher = null!;
         private FileSystemWatcher _folderWatcher = null!;
 
-        private HashSet<string> _skipEvents = new HashSet<string>();
+        private List<string> _skipEvents = new List<string>();
 
         public event EventHandler<SyncItem>? SyncEvent;
 
@@ -111,8 +111,9 @@ namespace FileSyncUtility.Infrastructure
                 Event = FileSystemEvent.Rename,
                 Type = ItemType.File,
                 FullPath = e.FullPath,
-                Name = e.Name,
-                RelativePath = e.Name
+                Name = e.OldName,
+                NewName = e.Name,
+                RelativePath = e.OldName
             };
 
             if (_skipEvents.Remove(syncItem.EventUniqueId))
@@ -168,8 +169,9 @@ namespace FileSyncUtility.Infrastructure
                 Event = FileSystemEvent.Rename,
                 Type = ItemType.Folder,
                 FullPath = e.FullPath,
-                Name = e.Name,
-                RelativePath = e.Name
+                Name = e.OldName,
+                NewName = e.Name,
+                RelativePath = e.OldName
             };
 
             if (_skipEvents.Remove(syncItem.EventUniqueId))
